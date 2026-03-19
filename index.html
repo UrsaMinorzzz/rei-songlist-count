@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歌单实时监控</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background: white;
+            padding: 2.5rem 4rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        h2 { margin-top: 0; color: #333; }
+        .count {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #1890ff;
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+        .status { font-size: 0.9rem; color: #8c8c8c; }
+        .error { color: #ff4d4f; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>寒鸦歌单收录总数</h2>
+        <div id="count" class="count">--</div>
+        <div id="status" class="status">正在连接数据源...</div>
+    </div>
+
+    <script>
+        // 目标 API 地址
+        const rawUrl = 'http://rei.monoteam.top/songs.php';
+        // 利用 allorigins 代理实现 HTTPS 到 HTTP 的转发，并解决跨域问题
+        const fetchUrl = `https://rei-songlist-proxy.bearchouzzz.workers.dev/`;
+
+        // 补回缺失的 DOM 元素获取逻辑
+        const countEl = document.getElementById('count');
+        const statusEl = document.getElementById('status');
+
+        async function fetchSongCount() {
+            try {
+                const response = await fetch(fetchUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    countEl.innerText = data.length;
+                    countEl.classList.remove('error');
+                    statusEl.innerText = `最近更新: ${new Date().toLocaleTimeString()}`;
+                } else {
+                    throw new Error('数据格式异常');
+                }
+            } catch (error) {
+                countEl.innerText = 'Err';
+                countEl.classList.add('error');
+                statusEl.innerText = `获取失败: ${error.message}`;
+            }
+        }
+
+        // 初始化拉取
+        fetchSongCount();
+        
+        // 设置轮询间隔（30秒）
+        setInterval(fetchSongCount, 30000);
+    </script>
+
+</body>
+</html>
