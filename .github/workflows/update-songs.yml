@@ -2,10 +2,7 @@ name: Update song list
 
 on:
   schedule:
-    # 每10分钟运行一次
     - cron: "3/10 * * * *"
-
-  # 允许在 GitHub 页面手动运行
   workflow_dispatch:
 
 permissions:
