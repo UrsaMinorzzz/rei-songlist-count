@@ -21,6 +21,26 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Diagnose DNS
+        run: |
+          echo "=== system resolver ==="
+          getent ahostsv4 rei.monoteam.top || true
+
+          echo "=== rei.monoteam.top ==="
+          dig rei.monoteam.top || true
+
+          echo "=== CNAME target ==="
+          dig hk1-dns.starzv.com || true
+
+          echo "=== Cloudflare DNS ==="
+          dig @1.1.1.1 rei.monoteam.top || true
+
+          echo "=== Google DNS ==="
+          dig @8.8.8.8 rei.monoteam.top || true
+
+          echo "=== curl ==="
+          curl -v --connect-timeout 10 http://rei.monoteam.top/songs.php || true
+
       - name: Fetch song list
         run: node scripts/update-songs.mjs
 

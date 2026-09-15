@@ -2,7 +2,32 @@ import { writeFile, mkdir } from "node:fs/promises";
 
 const targetUrl = "http://rei.monoteam.top/songs.php";
 
-const response = await fetch(targetUrl, {
+async function fetchWithRetry(url, options, maxAttempts = 5) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`Fetch attempt ${attempt}/${maxAttempts}`);
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+
+      console.error(
+        `Fetch failed: ${error.cause?.code ?? error.message}`,
+      );
+
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, attempt * 3000),
+        );
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+const response = await fetchWithRetry(targetUrl, {
   headers: {
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
